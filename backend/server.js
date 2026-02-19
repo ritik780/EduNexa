@@ -12,7 +12,8 @@ const port = process.env.PORT || 4000;
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://edunexa-frontend.onrender.com" // <-- change after deploy
+    "https://edunexa-frontend.onrender.com",
+    "https://edu-nexa-six.vercel.app/"// <-- change after deploy
   ],
   credentials: true
 }));

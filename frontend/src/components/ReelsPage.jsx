@@ -83,7 +83,7 @@ const ReelsPage = () => {
           />
 
           {/* GRADIENT OVERLAY */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/30"></div>
 
           {/* RIGHT ACTION BAR */}
           <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6">

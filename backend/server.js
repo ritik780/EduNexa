@@ -10,9 +10,13 @@ const port = process.env.PORT || 4000;
 // MIDDLEWARE
 // =======================
 app.use(cors({
-  origin: "http://localhost:5173", // Vite frontend URL
+  origin: [
+    "http://localhost:5173",
+    "https://edunexa-frontend.onrender.com" // <-- change after deploy
+  ],
   credentials: true
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

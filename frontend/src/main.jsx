@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App.jsx";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { ApiProvider } from "./context/ApiContext.jsx";
 import "./index.css";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -9,7 +10,9 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <App />
+      <ApiProvider>
+        <App />
+      </ApiProvider>
     </ClerkProvider>
   </React.StrictMode>
 );

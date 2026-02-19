@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import BottomNavbar from "../components/BottomNavbar";
+import { useApi } from "../context/ApiContext";
 import { useUser } from "@clerk/clerk-react";
 
 const UploadPage = () => {
+  const API=useApi();
   const { user } = useUser();
 
   const [mode, setMode] = useState(null); // null | post | reel
@@ -10,37 +12,41 @@ const UploadPage = () => {
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleUpload = async () => {
-    if (!file) return alert("Select a file first");
+ const handleUpload = async () => {
+  if (!file) return alert("Select a file");
 
+  try {
     const formData = new FormData();
+
     formData.append("media", file);
-    formData.append("caption", caption);
-    formData.append("userId", user?.id || "guest");
     formData.append("username", user?.fullName || "EduNEXA User");
-    formData.append("avatar", user?.imageUrl || "");
+    formData.append("userId", user?.id);
+    formData.append("avatar", user?.imageUrl);
+    formData.append("caption", caption);
     formData.append("type", mode); // post or reel
 
     setLoading(true);
 
-    try {
-      await fetch("http://localhost:5000/api/posts", {
-        method: "POST",
-        body: formData
-      });
+    const res = await fetch(`${API}/api/posts`, {
+      method: "POST",
+      body: formData
+    });
 
-      alert("Uploaded Successfully 🚀");
-      setFile(null);
-      setCaption("");
-      setMode(null);
+    if (!res.ok) throw new Error("Upload failed");
 
-    } catch (err) {
-      alert("Upload Failed ❌");
-      console.error(err);
-    }
+    alert("Uploaded Successfully 🚀");
 
+    setFile(null);
+    setCaption("");
+    setMode(null);
+
+  } catch (err) {
+    console.error(err);
+    alert("Upload failed ❌");
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   return (
     <div className="min-h-screen pb-32 bg-[#F6F7FB] dark:bg-[#0B1120] text-[#2E3232] dark:text-white">

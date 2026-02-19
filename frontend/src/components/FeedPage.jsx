@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import BottomNavbar from "../components/BottomNavbar";
 import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
+import { useApi } from "../context/ApiContext";
 
 const FeedPage = () => {
   const { user } = useUser();
+  const API=useApi();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // FETCH POSTS
   useEffect(() => {
-    fetch("http://localhost:5000/api/posts")
+    fetch("`${API}/api/posts`")
       .then(res => res.json())
       .then(data => {
         setPosts(data || []);
@@ -25,9 +27,8 @@ const FeedPage = () => {
   // LIKE SYSTEM
   const likePost = async (id) => {
     if (!user) return alert("Login to like posts");
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/posts/${id}/like`, {
+ try {
+      fetch(`${API}/api/posts/${id}/like`,{
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id })
@@ -112,7 +113,7 @@ const FeedPage = () => {
             {/* IMAGE */}
             {post.mediaType === "image" && (
               <img 
-                src={`http://localhost:5000/${post.mediaUrl}`} 
+                src={`${API}/${post.mediaUrl}`}
                 className="w-full object-cover"
               />
             )}
@@ -120,7 +121,7 @@ const FeedPage = () => {
             {/* VIDEO */}
             {post.mediaType === "video" && (
               <video 
-                src={`http://localhost:5000/${post.mediaUrl}`} 
+                src={`${API}/${post.mediaUrl}`}
                 className="w-full" 
                 controls 
               />
@@ -135,7 +136,7 @@ const FeedPage = () => {
                 </p>
 
                 <a
-                  href={`http://localhost:5000/${post.mediaUrl}`}
+                  href={`${API}/${post.mediaUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 px-4 py-2 text-sm bg-[#8335ED] text-white rounded-lg hover:scale-105 transition"

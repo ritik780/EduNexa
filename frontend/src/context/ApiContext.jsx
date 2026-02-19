@@ -1,12 +1,9 @@
 import { createContext, useContext } from "react";
 
-/*
-Change ONLY here when deploying
-Local: http://localhost:5000
-Render: https://edunexa-backend.onrender.com
-*/
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Automatically uses deployed backend on Vercel
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://edunexa-13es.onrender.com";
 
 const ApiContext = createContext(API_URL);
 

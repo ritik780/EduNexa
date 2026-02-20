@@ -17,28 +17,50 @@ if (!fs.existsSync(uploadsDir)) {
 
 const router = express.Router();
 
-// STORAGE CONFIG – absolute path so uploads work from any cwd
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const safeName = (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
-    cb(null, Date.now() + "-" + safeName);
-  }
+// On Render use memory storage (no disk write in multer), then we write to /tmp in the route
+const storage = process.env.RENDER
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => cb(null, uploadsDir),
+      filename: (req, file, cb) => {
+        const safeName = (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
+        cb(null, Date.now() + "-" + safeName);
+      }
+    });
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB for videos
 });
 
-const upload = multer({ storage });
-
+// Multer error handler (e.g. file too large, no file)
+const handleMulterError = (err, req, res, next) => {
+  if (err && err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ error: "File too large (max 100MB)" });
+  }
+  if (err) {
+    console.error("Multer error:", err);
+    return res.status(400).json({ error: err.message || "Upload error" });
+  }
+  next();
+};
 
 // ============================
 // CREATE POST
 // ============================
-router.post("/", upload.single("media"), async (req, res) => {
+router.post("/", upload.single("media"), handleMulterError, async (req, res) => {
   try {
     const file = req.file;
     if (!file) return res.status(400).json({ message: "No file uploaded" });
 
-    let mediaType = "image";
+    let filename = file.filename;
+    if (process.env.RENDER && file.buffer) {
+      filename = Date.now() + "-" + (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
+      const filepath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filepath, file.buffer);
+    }
 
+    let mediaType = "image";
     if (file.mimetype.startsWith("video")) mediaType = "video";
     else if (file.mimetype === "application/pdf") mediaType = "pdf";
 
@@ -47,17 +69,16 @@ router.post("/", upload.single("media"), async (req, res) => {
       username: req.body.username || "Anonymous",
       avatar: req.body.avatar || "",
       caption: req.body.caption || "",
-      mediaUrl: "uploads/" + file.filename,
+      mediaUrl: "uploads/" + filename,
       mediaType
     });
 
     await post.save();
 
     res.json(post);
-
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
-    res.status(500).json({ error: "Upload failed" });
+    res.status(500).json({ error: err.message || "Upload failed" });
   }
 });
 

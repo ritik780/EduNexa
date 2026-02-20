@@ -1,14 +1,28 @@
 import express from "express";
 import multer from "multer";
+import path from "path";
+import os from "os";
+import { fileURLToPath } from "url";
+import fs from "fs";
 import Post from "../models/Post.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// On Render the project dir is read-only; use /tmp so uploads work
+const uploadsDir = process.env.RENDER
+  ? path.join(os.tmpdir(), "edunexa-uploads")
+  : path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 const router = express.Router();
 
-// STORAGE CONFIG
+// STORAGE CONFIG – absolute path so uploads work from any cwd
 const storage = multer.diskStorage({
-  destination: "uploads/",
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+    const safeName = (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
+    cb(null, Date.now() + "-" + safeName);
   }
 });
 
@@ -33,7 +47,7 @@ router.post("/", upload.single("media"), async (req, res) => {
       username: req.body.username || "Anonymous",
       avatar: req.body.avatar || "",
       caption: req.body.caption || "",
-      mediaUrl: file.path.replace(/\\/g, "/"),
+      mediaUrl: "uploads/" + file.filename,
       mediaType
     });
 

@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import BottomNavbar from "../components/BottomNavbar";
 import { Heart, MessageCircle, Send, Music } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useApi } from "../context/ApiContext";
+import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
 const ReelsPage = () => {
   const { user } = useUser();
   const API = useApi();
+  const refreshKey = useRefreshTrigger();
 
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // FETCH REELS
+  // FETCH REELS (refetches when refreshKey changes, e.g. after upload)
   useEffect(() => {
+    setLoading(true);
     fetch(`${API}/api/posts/reels`)
       .then(res => res.json())
       .then(data => {
@@ -23,7 +25,7 @@ const ReelsPage = () => {
         console.error("Reels fetch error:", err);
         setLoading(false);
       });
-  }, [API]);
+  }, [API, refreshKey]);
 
   // REAL LIKE SYSTEM
   const toggleLike = async (id) => {
@@ -45,11 +47,13 @@ const ReelsPage = () => {
             : reel
         )
       );
-
     } catch (err) {
       console.error("Like failed:", err);
     }
   };
+
+  const isLiked = (reel) =>
+    reel.liked !== undefined ? reel.liked : (reel.likedBy || []).includes(user?.id);
 
   return (
     <div className="h-screen bg-black text-white overflow-y-scroll snap-y snap-mandatory">
@@ -93,13 +97,13 @@ const ReelsPage = () => {
               <Heart
                 size={32}
                 className={`transition ${
-                  reel.liked
+                  isLiked(reel)
                     ? "text-red-500 fill-red-500 scale-110"
                     : "text-white"
                 }`}
               />
               <p className="text-xs mt-1">
-                {reel.likes || 0}
+                {reel.likes ?? 0}
               </p>
             </button>
 

@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useUser, UserButton } from "@clerk/clerk-react";
 import BottomNavbar from "../components/BottomNavbar";
-import { useApi } from "../context/ApiContext";
+import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
 const ProfilePage = () => {
   const { user } = useUser();
   const API = useApi();
+  const refreshKey = useRefreshTrigger();
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
 
+    setLoading(true);
     fetch(`${API}/api/posts/user/${user.id}`)
       .then(res => res.json())
       .then(data => {
@@ -22,7 +24,7 @@ const ProfilePage = () => {
         console.error("Profile fetch error:", err);
         setLoading(false);
       });
-  }, [user, API]);
+  }, [user, API, refreshKey]);
 
   return (
     <div className="min-h-screen pb-32 bg-[#F6F7FB] dark:bg-[#0B1120] text-[#2E3232] dark:text-white">

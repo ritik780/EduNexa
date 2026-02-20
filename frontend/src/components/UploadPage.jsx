@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import BottomNavbar from "../components/BottomNavbar";
-import { useApi } from "../context/ApiContext";
+import { useApi, useTriggerRefresh } from "../context/ApiContext";
 import { useUser } from "@clerk/clerk-react";
 
 const UploadPage = () => {
-  const API=useApi();
+  const API = useApi();
+  const triggerRefresh = useTriggerRefresh();
   const { user } = useUser();
 
   const [mode, setMode] = useState(null); // null | post | reel
@@ -32,8 +33,10 @@ const UploadPage = () => {
       body: formData
     });
 
-    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || data.error || "Upload failed");
 
+    triggerRefresh();
     alert("Uploaded Successfully 🚀");
 
     setFile(null);
@@ -42,7 +45,7 @@ const UploadPage = () => {
 
   } catch (err) {
     console.error(err);
-    alert("Upload failed ❌");
+    alert(err.message || "Upload failed ❌");
   } finally {
     setLoading(false);
   }

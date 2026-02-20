@@ -1,17 +1,19 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import BottomNavbar from "../components/BottomNavbar";
 import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useApi } from "../context/ApiContext";
+import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
 const FeedPage = () => {
   const { user } = useUser();
-  const API=useApi();
+  const API = useApi();
+  const refreshKey = useRefreshTrigger();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // FETCH POSTS
+  // FETCH POSTS (refetches when refreshKey changes, e.g. after upload)
   useEffect(() => {
+    setLoading(true);
     fetch(`${API}/api/posts`)
       .then(res => res.json())
       .then(data => {
@@ -22,19 +24,19 @@ const FeedPage = () => {
         setPosts([]);
         setLoading(false);
       });
-  }, []);
+  }, [API, refreshKey]);
 
-  // LIKE SYSTEM
+  // LIKE SYSTEM – update count and liked state from API response
   const likePost = async (id) => {
     if (!user) return alert("Login to like posts");
- try {
-      fetch(`${API}/api/posts/${id}/like`,{
+    try {
+      const res = await fetch(`${API}/api/posts/${id}/like`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id })
       });
-
       const data = await res.json();
+      if (!res.ok) return;
 
       setPosts(prev =>
         prev.map(post =>
@@ -43,11 +45,13 @@ const FeedPage = () => {
             : post
         )
       );
-
     } catch (err) {
       console.error("Like failed:", err);
     }
   };
+
+  const isLiked = (post) =>
+    post.liked !== undefined ? post.liked : (post.likedBy || []).includes(user?.id);
 
   return (
     <div className="min-h-screen pb-32 bg-[#F6F7FB] dark:bg-[#0B1120] text-[#2E3232] dark:text-white">
@@ -154,7 +158,7 @@ const FeedPage = () => {
                   <Heart 
                     size={26}
                     className={`transition-all duration-200 ${
-                      post.liked
+                      isLiked(post)
                         ? "text-red-500 fill-red-500 scale-110 animate-pulse"
                         : "text-gray-600 dark:text-gray-300 hover:text-red-400"
                     }`}

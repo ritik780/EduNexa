@@ -12,7 +12,7 @@ const FeedPage = () => {
 
   // FETCH POSTS
   useEffect(() => {
-    fetch("`${API}/api/posts`")
+    fetch(`${API}/api/posts`)
       .then(res => res.json())
       .then(data => {
         setPosts(data || []);

@@ -24,3 +24,9 @@ export const useApi = () => {
 
 export const useRefreshTrigger = () => useContext(ApiContext).refreshKey ?? 0;
 export const useTriggerRefresh = () => useContext(ApiContext).triggerRefresh ?? (() => {});
+
+/** Use full URL for media – works for Cloudinary (http) or local uploads (uploads/...) */
+export const useMediaUrl = () => {
+  const apiUrl = useApi();
+  return (url) => (url?.startsWith("http") ? url : url ? `${apiUrl}/${url}` : "");
+};

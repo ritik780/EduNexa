@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 
 import HomePage from "./components/HomePage.jsx";       // intro
 import Login from "./components/Login.jsx";
@@ -33,6 +33,20 @@ const App = () => {
 
         {/* 🔐 LOGIN */}
         <Route path="/login" element={<Login />} />
+
+        {/* Clerk OAuth/callback – must exist or redirect flow 404s */}
+        <Route
+          path="/sign-in/sso-callback"
+          element={
+            <AuthenticateWithRedirectCallback signInFallbackRedirectUrl="/feed" signUpFallbackRedirectUrl="/feed" />
+          }
+        />
+        <Route
+          path="/sign-up/sso-callback"
+          element={
+            <AuthenticateWithRedirectCallback signInFallbackRedirectUrl="/feed" signUpFallbackRedirectUrl="/feed" />
+          }
+        />
 
         {/* 🔒 AUTHENTICATED APP */}
         <Route

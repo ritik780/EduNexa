@@ -4,10 +4,23 @@ import path from "path";
 import os from "os";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { v2 as cloudinary } from "cloudinary";
 import Post from "../models/Post.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// On Render the project dir is read-only; use /tmp so uploads work
+const useCloudinary = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+if (useCloudinary) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
 const uploadsDir = process.env.RENDER
   ? path.join(os.tmpdir(), "edunexa-uploads")
   : path.join(__dirname, "..", "uploads");
@@ -17,8 +30,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 const router = express.Router();
 
-// On Render use memory storage (no disk write in multer), then we write to /tmp in the route
-const storage = process.env.RENDER
+const storage = process.env.RENDER || useCloudinary
   ? multer.memoryStorage()
   : multer.diskStorage({
       destination: (req, file, cb) => cb(null, uploadsDir),
@@ -30,10 +42,9 @@ const storage = process.env.RENDER
 
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 } // 100MB for videos
+  limits: { fileSize: 100 * 1024 * 1024 }
 });
 
-// Multer error handler (e.g. file too large, no file)
 const handleMulterError = (err, req, res, next) => {
   if (err && err.code === "LIMIT_FILE_SIZE") {
     return res.status(400).json({ error: "File too large (max 100MB)" });
@@ -53,28 +64,42 @@ router.post("/", upload.single("media"), handleMulterError, async (req, res) => 
     const file = req.file;
     if (!file) return res.status(400).json({ message: "No file uploaded" });
 
-    let filename = file.filename;
-    if (process.env.RENDER && file.buffer) {
-      filename = Date.now() + "-" + (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
-      const filepath = path.join(uploadsDir, filename);
-      fs.writeFileSync(filepath, file.buffer);
-    }
+    let mediaUrl;
+    let mediaType = file.mimetype.startsWith("video") ? "video"
+      : file.mimetype === "application/pdf" ? "pdf" : "image";
 
-    let mediaType = "image";
-    if (file.mimetype.startsWith("video")) mediaType = "video";
-    else if (file.mimetype === "application/pdf") mediaType = "pdf";
+    if (useCloudinary && file.buffer) {
+      const resourceType = mediaType === "video" ? "video" : "auto";
+      const tempPath = path.join(os.tmpdir(), `edunexa-${Date.now()}-${(file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_")}`);
+      fs.writeFileSync(tempPath, file.buffer);
+      try {
+        const result = await cloudinary.uploader.upload(tempPath, {
+          resource_type: resourceType,
+          folder: "edunexa"
+        });
+        mediaUrl = result.secure_url;
+      } finally {
+        try { fs.unlinkSync(tempPath); } catch (_) {}
+      }
+    } else {
+      let filename = file.filename;
+      if (file.buffer) {
+        filename = Date.now() + "-" + (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
+        fs.writeFileSync(path.join(uploadsDir, filename), file.buffer);
+      }
+      mediaUrl = "uploads/" + filename;
+    }
 
     const post = new Post({
       userId: req.body.userId || "guest",
       username: req.body.username || "Anonymous",
       avatar: req.body.avatar || "",
       caption: req.body.caption || "",
-      mediaUrl: "uploads/" + filename,
+      mediaUrl,
       mediaType
     });
 
     await post.save();
-
     res.json(post);
   } catch (err) {
     console.error("UPLOAD ERROR:", err);

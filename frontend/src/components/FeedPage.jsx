@@ -4,26 +4,35 @@ import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
+const FETCH_TIMEOUT = 25000; // 25s so backend has time to wake on Render
+
 const FeedPage = () => {
   const { user } = useUser();
   const API = useApi();
   const refreshKey = useRefreshTrigger();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // FETCH POSTS (refetches when refreshKey changes, e.g. after upload)
   useEffect(() => {
     setLoading(true);
-    fetch(`${API}/api/posts`)
+    setError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    fetch(`${API}/api/posts`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         setPosts(data || []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch(err => {
         setPosts([]);
+        setError(err.name === "AbortError" ? "Taking too long. Try again in a moment." : "Couldn't load feed.");
         setLoading(false);
-      });
+      })
+      .finally(() => clearTimeout(timeoutId));
   }, [API, refreshKey]);
 
   // LIKE SYSTEM – update count and liked state from API response
@@ -73,8 +82,16 @@ const FeedPage = () => {
         </p>
       )}
 
+      {/* ERROR - backend slow or unreachable */}
+      {!loading && error && (
+        <div className="text-center py-16 px-4">
+          <p className="text-gray-500 mb-2">{error}</p>
+          <p className="text-sm text-gray-400">Open the backend link in a new tab to wake it, then refresh.</p>
+        </div>
+      )}
+
       {/* EMPTY STATE */}
-      {!loading && posts.length === 0 && (
+      {!loading && !error && posts.length === 0 && (
         <p className="text-center py-16 text-gray-500">
           No posts yet. Upload something 🚀
         </p>

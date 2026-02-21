@@ -3,18 +3,25 @@ import { useUser, UserButton } from "@clerk/clerk-react";
 import BottomNavbar from "../components/BottomNavbar";
 import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
+const FETCH_TIMEOUT = 25000;
+
 const ProfilePage = () => {
   const { user } = useUser();
   const API = useApi();
   const refreshKey = useRefreshTrigger();
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) return;
 
     setLoading(true);
-    fetch(`${API}/api/posts/user/${user.id}`)
+    setError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    fetch(`${API}/api/posts/user/${user.id}`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         setMyPosts(data || []);
@@ -22,8 +29,10 @@ const ProfilePage = () => {
       })
       .catch(err => {
         console.error("Profile fetch error:", err);
+        setError(err.name === "AbortError" ? "Taking too long." : "Couldn't load profile.");
         setLoading(false);
-      });
+      })
+      .finally(() => clearTimeout(timeoutId));
   }, [user, API, refreshKey]);
 
   return (
@@ -62,6 +71,10 @@ const ProfilePage = () => {
         <p className="text-center text-gray-500 mt-10">
           Loading your posts...
         </p>
+      )}
+
+      {!loading && error && (
+        <p className="text-center text-gray-500 mt-10">{error}</p>
       )}
 
       {/* USER POSTS GRID */}

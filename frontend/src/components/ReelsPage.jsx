@@ -4,6 +4,8 @@ import { Heart, MessageCircle, Send, Music } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useApi, useRefreshTrigger } from "../context/ApiContext";
 
+const FETCH_TIMEOUT = 25000;
+
 const ReelsPage = () => {
   const { user } = useUser();
   const API = useApi();
@@ -11,11 +13,16 @@ const ReelsPage = () => {
 
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // FETCH REELS (refetches when refreshKey changes, e.g. after upload)
   useEffect(() => {
     setLoading(true);
-    fetch(`${API}/api/posts/reels`)
+    setError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    fetch(`${API}/api/posts/reels`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         setReels(data || []);
@@ -23,8 +30,10 @@ const ReelsPage = () => {
       })
       .catch(err => {
         console.error("Reels fetch error:", err);
+        setError(err.name === "AbortError" ? "Taking too long. Try again." : "Couldn't load reels.");
         setLoading(false);
-      });
+      })
+      .finally(() => clearTimeout(timeoutId));
   }, [API, refreshKey]);
 
   // REAL LIKE SYSTEM
@@ -65,8 +74,13 @@ const ReelsPage = () => {
         </p>
       )}
 
+      {/* ERROR */}
+      {!loading && error && (
+        <p className="text-center mt-10 text-gray-300 px-4">{error}</p>
+      )}
+
       {/* EMPTY */}
-      {!loading && reels.length === 0 && (
+      {!loading && !error && reels.length === 0 && (
         <p className="text-center mt-10 text-gray-300">
           No reels uploaded yet 🎬
         </p>

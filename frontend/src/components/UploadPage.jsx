@@ -33,8 +33,11 @@ const UploadPage = () => {
       body: formData
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message || data.error || "Upload failed");
+    const text = await res.text();
+    const data = text ? (() => { try { return JSON.parse(text); } catch { return {}; } })() : {};
+    const msg = data.message || data.error || (res.ok ? null : `Server ${res.status}`);
+
+    if (!res.ok) throw new Error(msg || "Upload failed");
 
     triggerRefresh();
     alert("Uploaded Successfully 🚀");
@@ -44,8 +47,9 @@ const UploadPage = () => {
     setMode(null);
 
   } catch (err) {
-    console.error(err);
-    alert(err.message || "Upload failed ❌");
+    console.error("Upload error:", err);
+    const message = err.message || "Upload failed ❌";
+    alert(message);
   } finally {
     setLoading(false);
   }

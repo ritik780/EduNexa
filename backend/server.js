@@ -12,9 +12,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 4000;
 
+// Allow multiple origins (comma-separated FRONTEND_URL for production + preview)
+const frontendUrls = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((u) => u.trim())
+  .filter(Boolean);
 const allowedOrigins = [
   "http://localhost:5173",
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
+  "http://localhost:5174",
+  ...frontendUrls
 ].filter(Boolean);
 
 // On Render the project dir is read-only; use /tmp so uploads work

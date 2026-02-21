@@ -69,26 +69,58 @@ router.post("/", upload.single("media"), handleMulterError, async (req, res) => 
       : file.mimetype === "application/pdf" ? "pdf" : "image";
 
     if (useCloudinary && file.buffer) {
-      const resourceType = mediaType === "video" ? "video" : "auto";
-      const tempPath = path.join(os.tmpdir(), `edunexa-${Date.now()}-${(file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_")}`);
-      fs.writeFileSync(tempPath, file.buffer);
-      try {
-        const result = await cloudinary.uploader.upload(tempPath, {
-          resource_type: resourceType,
-          folder: "edunexa"
-        });
-        mediaUrl = result.secure_url;
-      } finally {
-        try { fs.unlinkSync(tempPath); } catch (_) {}
-      }
-    } else {
-      let filename = file.filename;
-      if (file.buffer) {
-        filename = Date.now() + "-" + (file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_");
-        fs.writeFileSync(path.join(uploadsDir, filename), file.buffer);
-      }
-      mediaUrl = "uploads/" + filename;
-    }
+
+  let resourceType;
+  if (mediaType === "video") resourceType = "video";
+  else if (mediaType === "pdf") resourceType = "raw";
+  else resourceType = "image";
+
+  const tempPath = path.join(
+    os.tmpdir(),
+    `edunexa-${Date.now()}-${(file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_")}`
+  );
+
+  fs.writeFileSync(tempPath, file.buffer);
+
+  try {
+    const result = await cloudinary.uploader.upload(tempPath, {
+      resource_type: resourceType,
+      folder: "edunexa",
+      use_filename: true,
+      unique_filename: true
+    });
+
+    mediaUrl = result.secure_url;
+  } finally {
+    try { fs.unlinkSync(tempPath); } catch (_) {}
+  }
+}if (useCloudinary && file.buffer) {
+
+  let resourceType;
+  if (mediaType === "video") resourceType = "video";
+  else if (mediaType === "pdf") resourceType = "raw";
+  else resourceType = "image";
+
+  const tempPath = path.join(
+    os.tmpdir(),
+    `edunexa-${Date.now()}-${(file.originalname || "file").replace(/[^a-zA-Z0-9.-]/g, "_")}`
+  );
+
+  fs.writeFileSync(tempPath, file.buffer);
+
+  try {
+    const result = await cloudinary.uploader.upload(tempPath, {
+      resource_type: resourceType,
+      folder: "edunexa",
+      use_filename: true,
+      unique_filename: true
+    });
+
+    mediaUrl = result.secure_url;
+  } finally {
+    try { fs.unlinkSync(tempPath); } catch (_) {}
+  }
+}
 
     const post = new Post({
       userId: req.body.userId || "guest",

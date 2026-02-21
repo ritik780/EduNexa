@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import BottomNavbar from "../components/BottomNavbar";
 import { Heart, MessageCircle, Send, Music } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useApi, useRefreshTrigger } from "../context/ApiContext";
+import { useApi, useRefreshTrigger, useMediaUrl } from "../context/ApiContext";
 
 const FETCH_TIMEOUT = 25000;
 
 const ReelsPage = () => {
   const { user } = useUser();
   const API = useApi();
+  const getMediaUrl = useMediaUrl();
   const refreshKey = useRefreshTrigger();
 
   const [reels, setReels] = useState([]);
@@ -92,7 +93,7 @@ const ReelsPage = () => {
 
           {/* VIDEO */}
           <video
-            src={`${API}/${reel.mediaUrl}`}
+            src={getMediaUrl(reel.mediaUrl)}
             autoPlay
             muted
             loop

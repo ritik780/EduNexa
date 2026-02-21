@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import BottomNavbar from "../components/BottomNavbar";
 import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useApi, useRefreshTrigger } from "../context/ApiContext";
+import { useApi, useRefreshTrigger, useMediaUrl } from "../context/ApiContext";
 
 const FETCH_TIMEOUT = 25000; // 25s so backend has time to wake on Render
 
 const FeedPage = () => {
   const { user } = useUser();
   const API = useApi();
+  const getMediaUrl = useMediaUrl();
   const refreshKey = useRefreshTrigger();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +135,7 @@ const FeedPage = () => {
             {/* IMAGE */}
             {post.mediaType === "image" && (
               <img 
-                src={`${API}/${post.mediaUrl}`}
+                src={getMediaUrl(post.mediaUrl)}
                 className="w-full object-cover"
               />
             )}
@@ -142,7 +143,7 @@ const FeedPage = () => {
             {/* VIDEO */}
             {post.mediaType === "video" && (
               <video 
-                src={`${API}/${post.mediaUrl}`}
+                src={getMediaUrl(post.mediaUrl)}
                 className="w-full" 
                 controls 
               />
@@ -157,7 +158,7 @@ const FeedPage = () => {
                 </p>
 
                 <a
-                  href={`${API}/${post.mediaUrl}`}
+                  href={getMediaUrl(post.mediaUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 px-4 py-2 text-sm bg-[#8335ED] text-white rounded-lg hover:scale-105 transition"

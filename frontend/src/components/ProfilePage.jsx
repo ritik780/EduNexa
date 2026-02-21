@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useUser, UserButton } from "@clerk/clerk-react";
 import BottomNavbar from "../components/BottomNavbar";
-import { useApi, useRefreshTrigger } from "../context/ApiContext";
+import { useApi, useRefreshTrigger, useMediaUrl } from "../context/ApiContext";
 
 const FETCH_TIMEOUT = 25000;
 
 const ProfilePage = () => {
   const { user } = useUser();
   const API = useApi();
+  const getMediaUrl = useMediaUrl();
   const refreshKey = useRefreshTrigger();
   const [myPosts, setMyPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +87,7 @@ const ProfilePage = () => {
             {/* IMAGE */}
             {post.mediaType === "image" && (
               <img
-                src={`${API}/${post.mediaUrl}`}
+                src={getMediaUrl(post.mediaUrl)}
                 className="w-full h-44 object-cover"
               />
             )}
@@ -94,7 +95,7 @@ const ProfilePage = () => {
             {/* VIDEO */}
             {post.mediaType === "video" && (
               <video
-                src={`${API}/${post.mediaUrl}`}
+                src={getMediaUrl(post.mediaUrl)}
                 className="w-full h-44 object-cover"
                 muted
               />

@@ -35,31 +35,6 @@ Users can upload study materials, share short educational videos, and interact t
 
 ---
 
-## 📂 Folder Structure
-EduNexa/
-│
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── context/
-│ │ └── App.js
-│ ├── index.html
-│ ├── package.json
-│ └── .env
-│
-├── backend/
-│ ├── models/
-│ ├── routes/
-│ ├── controllers/
-│ ├── server.js
-│ ├── package.json
-│ └── .env
-│
-├── .gitignore
-├── README.md
-└── package.json
-
 Future Improvements
 💬 Real-time comments
 ❤️ Like & save feature

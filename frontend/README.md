@@ -1,16 +1,47 @@
-# React + Vite
+# 🎓 EduNexa
+> 🚀 Transforming Learning into a Social Experience
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EduNexa is a modern full-stack educational platform that combines **learning + social interaction** in one place.  
+Users can upload study materials, share short educational videos, and interact through a dynamic live feed system.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🌟 Features
 
-## React Compiler
+✨ Upload study materials (PDFs, notes, resources)  
+🎥 Share short educational videos  
+📰 Live interactive feed system  
+🔐 Secure authentication  
+☁️ Cloud media storage integration  
+📱 Fully responsive modern UI  
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠 Tech Stack
+### 💻 Frontend
+- ⚛️ React.js  
+- 🎨 Tailwind CSS  
+- 🔐 Clerk Authentication  
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🖥 Backend
+- 🟢 Node.js  
+- 🚂 Express.js  
+- 🍃 MongoDB (Mongoose)  
+- ☁️ Cloudinary  
+
+### 🚀 Deployment
+- ▲ Vercel (Frontend)  
+- 🚀 Render (Backend)  
+
+---
+
+Future Improvements
+💬 Real-time comments
+❤️ Like & save feature
+📊 Analytics dashboard
+🔔 Notifications system
+🧠 AI-powered content recommendations
+
+👨‍💻 Author
+Ritik Tomar
+🚀 Full Stack Developer

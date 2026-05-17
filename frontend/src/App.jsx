@@ -9,7 +9,7 @@ import FeedPage from "./components/FeedPage.jsx";       // MAIN ENTRY
 import UploadPage from "./components/UploadPage.jsx";
 import ReelsPage from "./components/ReelsPage.jsx";
 import ProfilePage from "./components/ProfilePage.jsx";
-
+import AI from "./components/AI.jsx";
 const App = () => {
   return (
     <BrowserRouter>
@@ -84,7 +84,14 @@ const App = () => {
             </SignedIn>
           }
         />
-
+<Route
+  path="/ai"
+  element={
+    <SignedIn>
+      <AI />
+    </SignedIn>
+  }
+/>
         {/* 🚫 FALLBACK */}
         <Route path="*" element={<Navigate to="/" />} />
 

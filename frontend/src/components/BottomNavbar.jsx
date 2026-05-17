@@ -13,7 +13,7 @@ const BottomNavbar = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: "/ai-generator", label: "AI", icon: Brain },
+    { path: "/ai", label: "AI", icon: Brain },
     { path: "/feed", label: "Feed", icon: BookOpen },
     { path: "/upload", label: "Upload", icon: PlusSquare, center: true },
     { path: "/reels", label: "Reels", icon: PlaySquare },

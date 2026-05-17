@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import { v2 as cloudinary } from "cloudinary";
 import Post from "../models/Post.js";
-
+import client from "../config/groq.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const useCloudinary = !!(
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -220,4 +220,57 @@ router.put("/:id/like", async (req, res) => {
   }
 });
 
+// ============================
+// AI CHAT ROUTE
+// ============================
+router.post("/ai", async (req, res) => {
+
+  try {
+
+    const { prompt } = req.body;
+
+    // Check prompt
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: "Prompt is required"
+      });
+    }
+
+    // Send prompt to Groq AI
+    const completion = await client.chat.completions.create({
+
+      model: "openai/gpt-oss-120b",
+
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
+
+    // Extract AI reply
+    const reply =
+      completion.choices[0].message.content;
+
+    // Send response
+    res.json({
+      success: true,
+      reply,
+    });
+
+  } catch (err) {
+
+    console.error("AI ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message || "AI request failed"
+    });
+  }
+});
 export default router;

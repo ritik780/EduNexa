@@ -1,5 +1,5 @@
 import Post from "../models/Post.js";
-import model from "../config/gemini.js";
+import model from "../config/groq.js";
 
 export const createPost = async (req, res) => {
   try {
